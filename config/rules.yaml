@@ -1,0 +1,31 @@
+# Custom rules for your team — add your own below!
+# These run on every PR in addition to the built-in rules.
+
+rules:
+  - id: no-requests-without-timeout
+    pattern: "requests\\.(get|post|put|delete|patch)\\([^)]*\\)"
+    files: "*.py"
+    severity: warning
+    category: performance
+    message: "HTTP requests without timeout can hang forever. Add `timeout=30` parameter."
+
+  - id: no-wildcard-import
+    pattern: "^from .+ import \\*"
+    files: "*.py"
+    severity: suggestion
+    category: maintainability
+    message: "Wildcard imports make it hard to know where names come from. Import explicitly instead."
+
+  - id: no-mutable-default-arg
+    pattern: "def .+\\(.*=\\s*[\\[\\{]"
+    files: "*.py"
+    severity: warning
+    category: logic
+    message: "Mutable default arguments (list/dict) are shared across all calls. Use `None` and initialize inside the function instead."
+
+  - id: no-localhost-in-code
+    pattern: "localhost|127\\.0\\.0\\.1"
+    files: "*"
+    severity: warning
+    category: maintainability
+    message: "Hardcoded localhost URL found. Use environment variables for host configuration."
