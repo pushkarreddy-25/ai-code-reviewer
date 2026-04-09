@@ -1,12 +1,13 @@
 import json
+import os
 import re
 
-import anthropic
+from groq import Groq
 
 
 SYSTEM_PROMPT = """You are a senior software engineer performing a thorough code review on a pull request.
 
-Your job is to find REAL bugs, security vulnerabilities, performance issues, and maintainability problems — not nitpick style or add fluff.
+Your job is to find REAL bugs, security vulnerabilities, performance issues, and maintainability problems.
 
 You MUST respond with a valid JSON array only. No explanation text before or after. No markdown fences.
 
@@ -15,109 +16,111 @@ Each finding must follow this exact schema:
   {
     "file": "relative/path/to/file.py",
     "line": 42,
-    "severity": "critical" | "warning" | "suggestion",
-    "category": "security" | "performance" | "logic" | "maintainability" | "style",
+    "severity": "critical",
+    "category": "security",
     "comment": "Clear explanation of the problem AND a concrete suggested fix"
   }
 ]
 
+Severity must be one of: critical, warning, suggestion
+Category must be one of: security, performance, logic, maintainability, style
+
 Severity guide:
-- critical: Security vulnerabilities (SQL injection, XSS, hardcoded secrets, unvalidated input), crashes, data corruption
-- warning: Logic bugs, unhandled exceptions, O(n²) in hot paths, memory leaks, missing null checks
-- suggestion: Code clarity, dead code, missing tests, better naming, refactoring opportunities
+- critical: SQL injection, hardcoded secrets, XSS, crashes, data corruption
+- warning: Logic bugs, unhandled exceptions, O(n2) loops, missing null checks
+- suggestion: Dead code, better naming, missing tests, refactoring
 
 IMPORTANT rules:
 - Only report issues in ADDED lines (lines starting with + in the diff)
-- Line numbers must be real line numbers in the final file, not diff offsets
+- Line numbers must be real line numbers in the final file
 - If no real issues exist, return an empty array: []
-- Maximum 15 findings per review
+- Maximum 10 findings per review
 - Be specific: mention variable names, function names, exact problem"""
 
 
 class ClaudeReviewer:
     def __init__(self, api_key: str):
-        self.client = anthropic.Anthropic(api_key=api_key)
+        self.client = Groq(api_key=os.getenv("GROQ_API_KEY", api_key))
 
     async def review_diff(self, pr_data: dict, diff_files: list) -> list:
-        """Run LLM analysis on the PR diff."""
         if not diff_files:
             return []
 
-        # Build context message
         files_context = ""
         for f in diff_files:
             files_context += f"\n\n### FILE: {f['filename']} ({f['status']})\n"
-            files_context += f"**Diff (+ added, - removed):**\n```\n{f['patch'][:3000]}\n```\n"
+            files_context += f"**Diff:**\n```\n{f['patch'][:3000]}\n```\n"
             if f["full_content"]:
-                files_context += f"**Full file content:**\n```{f['extension']}\n{f['full_content'][:3000]}\n```\n"
+                files_context += f"**Full content:**\n```{f['extension']}\n{f['full_content'][:2000]}\n```\n"
 
         user_message = f"""PR Title: {pr_data['pr_title']}
-PR Description: {pr_data.get('pr_body', 'No description provided')}
+PR Description: {pr_data.get('pr_body', 'No description')}
 Author: {pr_data['author']}
 Repository: {pr_data['repo']}
 
 {files_context}
 
-Review the above changes and return your findings as a JSON array."""
+Review the above changes. Return ONLY a JSON array of findings."""
 
         try:
-            message = self.client.messages.create(
-                model="claude-opus-4-5",
+            response = self.client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
                 max_tokens=2000,
-                system=SYSTEM_PROMPT,
-                messages=[{"role": "user", "content": user_message}],
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": user_message},
+                ],
             )
 
-            raw = message.content[0].text.strip()
-
-            # Strip markdown fences if Claude added them
+            raw = response.choices[0].message.content.strip()
             raw = re.sub(r"^```json\s*", "", raw)
+            raw = re.sub(r"^```\s*", "", raw)
             raw = re.sub(r"\s*```$", "", raw)
 
             findings = json.loads(raw)
 
-            # Validate and tag source
             validated = []
             for f in findings:
                 if isinstance(f, dict) and "file" in f and "comment" in f:
-                    f["source"] = "Claude AI"
+                    f["source"] = "Groq AI (Llama 3.3)"
                     f["line"] = int(f.get("line", 1))
                     validated.append(f)
 
             return validated
 
         except json.JSONDecodeError as e:
-            print(f"Claude returned invalid JSON: {e}\nRaw: {raw[:500]}")
+            print(f"Groq returned invalid JSON: {e}\nRaw: {raw[:300]}")
             return []
         except Exception as e:
-            print(f"Claude API error: {e}")
+            print(f"Groq API error: {e}")
             return []
 
     async def generate_summary(self, pr_data: dict, findings: list) -> str:
-        """Generate a human-readable PR summary."""
-        critical = [f for f in findings if f.get("severity") == "critical"]
-        warnings = [f for f in findings if f.get("severity") == "warning"]
-
         if not findings:
-            return "✅ No significant issues found. This PR looks good to merge!"
+            return "No significant issues found. This PR looks good to merge!"
 
         findings_text = "\n".join([
-            f"- [{f['severity'].upper()}] {f['file']}:{f.get('line', '?')} — {f['comment'][:100]}"
-            for f in findings[:8]
+            f"- [{f['severity'].upper()}] {f.get('file','?')}:{f.get('line','?')} — {f.get('comment','')[:100]}"
+            for f in findings[:6]
         ])
 
-        message = self.client.messages.create(
-            model="claude-opus-4-5",
-            max_tokens=300,
-            messages=[{
-                "role": "user",
-                "content": f"""Write a 2-3 sentence PR review summary for:
+        try:
+            response = self.client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                max_tokens=200,
+                messages=[{
+                    "role": "user",
+                    "content": f"""Write a 2-3 sentence PR review summary.
 PR: {pr_data['pr_title']}
 Findings:
 {findings_text}
 
-Be direct and helpful. Start with overall assessment. Mention the most important issue."""
-            }],
-        )
-
-        return message.content[0].text.strip()
+Be direct. Start with overall assessment. Mention the most important issue."""
+                }],
+            )
+            return response.choices[0].message.content.strip()
+        except Exception as e:
+            print(f"Summary error: {e}")
+            critical = sum(1 for f in findings if f.get("severity") == "critical")
+            warning = sum(1 for f in findings if f.get("severity") == "warning")
+            return f"Found {critical} critical issues and {warning} warnings that should be addressed before merging."
