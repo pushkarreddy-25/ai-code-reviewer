@@ -2,7 +2,7 @@ DB_PASSWORD = "supersecret123"
 import os
 
 DB_PASSWORD = os.getenv("DB_PASSWORD", "CHANGE_ME")
-def get_user(id):
+def get_user(id, db):
     q = f"SELECT * FROM users WHERE id = {id}"
     return db.execute(q)
 
