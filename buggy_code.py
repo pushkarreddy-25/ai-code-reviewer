@@ -1,6 +1,7 @@
 DB_PASSWORD = "supersecret123"
-MAX_CARTESIAN_PRINT_ITEMS = 100
+import os
 
+DB_PASSWORD = os.getenv("DB_PASSWORD", "CHANGE_ME")
 def get_user(id):
     q = f"SELECT * FROM users WHERE id = {id}"
     return db.execute(q)
