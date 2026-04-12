@@ -5,56 +5,109 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>AI Code Reviewer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --bg: #080c14;
-    --surface: #0d1421;
-    --surface2: #111927;
-    --border: #1e2d45;
-    --accent: #00d4ff;
-    --accent2: #7b5ea7;
-    --critical: #ff4757;
-    --warning: #ffa502;
-    --suggestion: #2ed573;
-    --text: #e8f4fd;
-    --muted: #5a7a9a;
-    --glow: 0 0 20px rgba(0, 212, 255, 0.15);
+    --bg: #07111f;
+    --bg2: #0c1a2e;
+    --surface: rgba(9, 22, 40, 0.74);
+    --surface-strong: #10233b;
+    --border: rgba(144, 186, 226, 0.22);
+    --accent: #27d2ff;
+    --accent-2: #f4a261;
+    --critical: #ff5d73;
+    --warning: #ffb547;
+    --suggestion: #3ddc84;
+    --text: #e9f5ff;
+    --muted: #8daece;
+    --glass-blur: blur(14px);
+    --shadow-soft: 0 16px 50px rgba(2, 10, 20, 0.42);
+    --radius-lg: 18px;
+    --radius-md: 12px;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
-    font-family: 'Syne', sans-serif;
-    background: var(--bg);
+    font-family: 'Sora', sans-serif;
+    background:
+      radial-gradient(circle at 10% 10%, #14365f 0%, transparent 45%),
+      radial-gradient(circle at 90% 20%, #30496b 0%, transparent 35%),
+      linear-gradient(165deg, var(--bg) 0%, var(--bg2) 80%);
     color: var(--text);
     min-height: 100vh;
     overflow-x: hidden;
   }
 
-  /* Animated background grid */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: auto -15vw -30vh auto;
+    width: 50vw;
+    height: 50vw;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(244,162,97,0.18) 0%, rgba(244,162,97,0.02) 60%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+    filter: blur(8px);
+  }
+
   body::before {
     content: '';
     position: fixed;
     inset: 0;
     background-image:
-      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
+      linear-gradient(rgba(39,210,255,0.055) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(39,210,255,0.055) 1px, transparent 1px);
+    background-size: 48px 48px;
     pointer-events: none;
     z-index: 0;
   }
 
-  .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+  body.light-theme {
+    --bg: #f1f7ff;
+    --bg2: #dcecff;
+    --surface: rgba(255, 255, 255, 0.72);
+    --surface-strong: #ffffff;
+    --border: rgba(18, 64, 105, 0.16);
+    --accent: #0089c8;
+    --accent-2: #e28743;
+    --critical: #d72652;
+    --warning: #d07a11;
+    --suggestion: #129c4a;
+    --text: #09273f;
+    --muted: #486d90;
+    --shadow-soft: 0 16px 35px rgba(27, 58, 86, 0.2);
+    background:
+      radial-gradient(circle at 12% 9%, rgba(104, 175, 233, 0.3) 0%, transparent 45%),
+      radial-gradient(circle at 85% 15%, rgba(255, 179, 122, 0.23) 0%, transparent 38%),
+      linear-gradient(165deg, var(--bg) 0%, var(--bg2) 82%);
+  }
 
-  /* Header */
+  body.light-theme::before {
+    background-image:
+      linear-gradient(rgba(0, 95, 156, 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 95, 156, 0.08) 1px, transparent 1px);
+  }
+
+  body.light-theme header {
+    background: rgba(242, 249, 255, 0.84);
+  }
+
+  .container {
+    width: min(1240px, 100% - clamp(1rem, 3vw, 2rem));
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
   header {
     border-bottom: 1px solid var(--border);
-    padding: 20px 0;
+    padding: 14px 0;
     position: sticky;
     top: 0;
-    background: rgba(8,12,20,0.95);
-    backdrop-filter: blur(12px);
+    background: rgba(4, 13, 24, 0.88);
+    backdrop-filter: var(--glass-blur);
     z-index: 100;
   }
 
@@ -62,6 +115,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 0.65rem;
   }
 
   .logo {
@@ -71,24 +125,50 @@
   }
 
   .logo-icon {
-    width: 36px; height: 36px;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    border-radius: 8px;
+    width: 38px; height: 38px;
+    background: linear-gradient(145deg, var(--accent), #80ffe0);
+    border-radius: 10px;
     display: flex; align-items: center; justify-content: center;
     font-size: 18px;
+    box-shadow: 0 10px 22px rgba(39, 210, 255, 0.28);
   }
 
   .logo-text {
-    font-size: 18px;
+    font-size: 1.05rem;
     font-weight: 800;
-    letter-spacing: -0.5px;
+    letter-spacing: -0.4px;
   }
 
-  .logo-text span { color: var(--accent); }
+  .logo-text span { color: var(--accent-2); }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .icon-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text);
+    border: 1px solid var(--border);
+    background: linear-gradient(135deg, rgba(39,210,255,0.12), rgba(244,162,97,0.12));
+    border-radius: 999px;
+    padding: 0.35rem 0.62rem;
+    cursor: pointer;
+    transition: transform 0.2s, filter 0.2s;
+  }
+
+  .icon-btn:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.08);
+  }
 
   .status-dot {
     display: flex; align-items: center; gap: 8px;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'IBM Plex Mono', monospace;
     font-size: 12px;
     color: var(--muted);
   }
@@ -105,28 +185,182 @@
     50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(46,213,115,0); }
   }
 
-  /* Stats */
+  .main {
+    padding-top: clamp(1.25rem, 3vw, 2.2rem);
+    padding-bottom: 2.2rem;
+  }
+
+  .hero {
+    background: linear-gradient(140deg, rgba(20,45,78,0.68) 0%, rgba(9,25,44,0.86) 50%, rgba(23,45,69,0.66) 100%);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: clamp(1rem, 2.8vw, 1.6rem);
+    margin-bottom: clamp(1rem, 2.5vw, 1.5rem);
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 1rem;
+    box-shadow: var(--shadow-soft);
+  }
+
+  body.light-theme .hero {
+    background: linear-gradient(140deg, rgba(233,245,255,0.95) 0%, rgba(218,236,255,0.9) 50%, rgba(247,251,255,0.92) 100%);
+  }
+
+  .hero-title {
+    font-size: clamp(1.2rem, 1.4vw + 0.9rem, 1.9rem);
+    line-height: 1.2;
+    letter-spacing: -0.4px;
+    margin-bottom: 0.6rem;
+  }
+
+  .hero-sub {
+    color: #c2ddf8;
+    max-width: 56ch;
+    line-height: 1.55;
+    font-size: 0.95rem;
+  }
+
+  body.light-theme .hero-sub {
+    color: #315f88;
+  }
+
+  .hero-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-top: 0.9rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .hero-pill {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    color: #d8f4ff;
+    border: 1px solid rgba(180, 227, 255, 0.34);
+    background: rgba(15, 41, 66, 0.6);
+    border-radius: 999px;
+    padding: 0.32rem 0.64rem;
+  }
+
+  body.light-theme .hero-pill {
+    color: #175580;
+    border-color: rgba(54, 125, 176, 0.34);
+    background: rgba(229, 241, 252, 0.9);
+  }
+
+  .trend-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 0.7rem;
+    background: rgba(12, 31, 52, 0.64);
+  }
+
+  body.light-theme .trend-card {
+    background: rgba(255, 255, 255, 0.76);
+  }
+
+  .trend-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.45rem;
+    font-size: 0.7rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .trend-canvas {
+    width: 100%;
+    height: 112px;
+    display: block;
+    border-radius: 8px;
+    background: rgba(2, 12, 23, 0.32);
+  }
+
+  body.light-theme .trend-canvas {
+    background: rgba(186, 220, 247, 0.25);
+  }
+
+  .trend-legend {
+    display: flex;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+    margin-top: 0.55rem;
+    font-size: 0.66rem;
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.32rem;
+  }
+
+  .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .hero-right {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    align-content: start;
+  }
+
+  .hero-metric {
+    padding: 0.75rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    background: rgba(12, 31, 52, 0.64);
+  }
+
+  body.light-theme .hero-metric {
+    background: rgba(255, 255, 255, 0.77);
+  }
+
+  .hero-metric-label {
+    font-size: 0.66rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 0.35rem;
+  }
+
+  .hero-metric-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
   .stats-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    margin: 32px 0;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 0.85rem;
+    margin: 0 0 1rem;
   }
 
   .stat-card {
     background: var(--surface);
+    backdrop-filter: var(--glass-blur);
     border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 20px;
+    border-radius: var(--radius-md);
+    padding: 1rem;
     position: relative;
     overflow: hidden;
-    transition: border-color 0.2s, transform 0.2s;
+    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
   }
 
   .stat-card:hover {
     border-color: var(--accent);
     transform: translateY(-2px);
-    box-shadow: var(--glow);
+    box-shadow: 0 14px 30px rgba(8, 19, 33, 0.32);
   }
 
   .stat-card::before {
@@ -134,7 +368,7 @@
     position: absolute;
     top: 0; left: 0; right: 0;
     height: 2px;
-    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
   }
 
   .stat-label {
@@ -143,27 +377,28 @@
     letter-spacing: 1.5px;
     text-transform: uppercase;
     color: var(--muted);
-    margin-bottom: 8px;
+    margin-bottom: 0.4rem;
   }
 
   .stat-value {
-    font-size: 36px;
+    font-size: clamp(1.55rem, 2vw, 2rem);
     font-weight: 800;
     line-height: 1;
     font-variant-numeric: tabular-nums;
   }
 
-  .stat-value.critical { color: var(--critical); }
-  .stat-value.warning { color: var(--warning); }
-  .stat-value.suggestion { color: var(--suggestion); }
-  .stat-value.accent { color: var(--accent); }
+  .stat-value.critical { color: var(--critical); text-shadow: 0 0 16px rgba(255, 93, 115, 0.28); }
+  .stat-value.warning { color: var(--warning); text-shadow: 0 0 16px rgba(255, 181, 71, 0.24); }
+  .stat-value.suggestion { color: var(--suggestion); text-shadow: 0 0 16px rgba(61, 220, 132, 0.24); }
+  .stat-value.accent { color: var(--accent); text-shadow: 0 0 16px rgba(39, 210, 255, 0.26); }
 
-  /* Reviews list */
   .section-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 16px;
+    gap: 0.9rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
   }
 
   .section-title {
@@ -174,37 +409,166 @@
     color: var(--muted);
   }
 
-  .refresh-btn {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    color: var(--accent);
-    background: none;
-    border: 1px solid var(--accent);
-    padding: 6px 14px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background 0.2s;
+  .section-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    flex-wrap: wrap;
   }
 
-  .refresh-btn:hover { background: rgba(0,212,255,0.08); }
+  .control-select {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text);
+    border: 1px solid var(--border);
+    background: rgba(11, 29, 48, 0.6);
+    border-radius: 8px;
+    padding: 0.44rem 0.5rem;
+  }
 
-  .reviews-list { display: flex; flex-direction: column; gap: 12px; }
+  body.light-theme .control-select {
+    background: rgba(255, 255, 255, 0.72);
+  }
+
+  .export-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    border: 1px solid var(--border);
+    background: rgba(11, 29, 48, 0.6);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 0.48rem 0.62rem;
+    cursor: pointer;
+    transition: filter 0.2s, transform 0.2s;
+  }
+
+  body.light-theme .export-btn {
+    background: rgba(255, 255, 255, 0.72);
+  }
+
+  .export-btn:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.06);
+  }
+
+  .export-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .view-toggle {
+    display: inline-flex;
+    background: rgba(11, 29, 48, 0.6);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  body.light-theme .view-toggle {
+    background: rgba(255, 255, 255, 0.68);
+  }
+
+  .view-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    border: 0;
+    background: transparent;
+    padding: 0.46rem 0.62rem;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .view-btn.active {
+    background: linear-gradient(130deg, rgba(39,210,255,0.22), rgba(244,162,97,0.2));
+    color: var(--text);
+  }
+
+  .refresh-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: #d6f5ff;
+    background: linear-gradient(120deg, rgba(39,210,255,0.18), rgba(244,162,97,0.14));
+    border: 1px solid rgba(196, 227, 255, 0.4);
+    padding: 0.48rem 0.82rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s, filter 0.2s, background 0.2s;
+  }
+
+  body.light-theme .refresh-btn {
+    color: #0a4365;
+  }
+
+  .refresh-btn:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.08);
+  }
+
+  .refresh-btn.loading {
+    pointer-events: none;
+    opacity: 0.8;
+  }
+
+  .refresh-btn.loading .icon {
+    display: inline-block;
+    animation: spin 0.9s linear infinite;
+  }
+
+  .reviews-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .reviews-list.compact { gap: 0.45rem; }
+
+  .reviews-list.compact .review-card {
+    padding: 0.72rem;
+    border-radius: 10px;
+  }
+
+  .reviews-list.compact .review-meta {
+    margin-top: 0.42rem;
+    gap: 0.42rem;
+  }
+
+  .reviews-list.compact .badge {
+    font-size: 10px;
+    padding: 2px 8px;
+  }
 
   .review-card {
     background: var(--surface);
+    backdrop-filter: var(--glass-blur);
     border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 20px 24px;
+    border-radius: var(--radius-md);
+    padding: 1rem;
     cursor: pointer;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+    animation: riseIn 0.35s ease forwards;
+    opacity: 0;
+    transform: translateY(7px);
   }
 
   .review-card:hover {
-    border-color: rgba(0,212,255,0.4);
-    box-shadow: var(--glow);
+    border-color: rgba(39,210,255,0.55);
+    box-shadow: 0 15px 40px rgba(7, 20, 35, 0.45);
+    transform: translateY(-2px);
   }
 
-  .review-card.active { border-color: var(--accent); }
+  .review-card.active {
+    border-color: var(--accent);
+    box-shadow: inset 0 0 0 1px rgba(39, 210, 255, 0.24);
+  }
+
+  @keyframes riseIn {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 
   .review-header {
     display: flex;
@@ -214,28 +578,33 @@
   }
 
   .review-repo {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'IBM Plex Mono', monospace;
     font-size: 12px;
-    color: var(--accent);
+    color: #84e9ff;
     margin-bottom: 4px;
+    overflow-wrap: anywhere;
+  }
+
+  body.light-theme .review-repo {
+    color: #0f5f8b;
   }
 
   .review-title {
-    font-size: 15px;
+    font-size: 0.94rem;
     font-weight: 600;
-    line-height: 1.4;
+    line-height: 1.45;
   }
 
   .review-meta {
     display: flex;
     align-items: center;
-    gap: 16px;
-    margin-top: 12px;
+    gap: 0.65rem;
+    margin-top: 0.65rem;
     flex-wrap: wrap;
   }
 
   .badge {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'IBM Plex Mono', monospace;
     font-size: 11px;
     font-weight: 600;
     padding: 3px 10px;
@@ -248,49 +617,62 @@
   .badge-critical { background: rgba(255,71,87,0.15); color: var(--critical); border: 1px solid rgba(255,71,87,0.3); }
   .badge-warning { background: rgba(255,165,2,0.15); color: var(--warning); border: 1px solid rgba(255,165,2,0.3); }
   .badge-suggestion { background: rgba(46,213,115,0.15); color: var(--suggestion); border: 1px solid rgba(46,213,115,0.3); }
-  .badge-running { background: rgba(0,212,255,0.15); color: var(--accent); border: 1px solid rgba(0,212,255,0.3); }
+  .badge-running { background: rgba(39,210,255,0.15); color: var(--accent); border: 1px solid rgba(39,210,255,0.35); }
   .badge-failed { background: rgba(255,71,87,0.1); color: #ff6b81; border: 1px solid rgba(255,71,87,0.2); }
   .badge-completed { background: rgba(46,213,115,0.1); color: var(--suggestion); border: 1px solid rgba(46,213,115,0.2); }
 
   .review-author {
     font-size: 12px;
     color: var(--muted);
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'IBM Plex Mono', monospace;
   }
 
-  /* Detail panel */
   .detail-panel {
-    background: var(--surface);
+    background: rgba(10, 24, 41, 0.74);
+    backdrop-filter: var(--glass-blur);
     border: 1px solid var(--border);
-    border-radius: 12px;
-    margin-top: 12px;
+    border-radius: var(--radius-md);
+    margin-top: 0.65rem;
     overflow: hidden;
     display: none;
+  }
+
+  body.light-theme .detail-panel {
+    background: rgba(255, 255, 255, 0.75);
   }
 
   .detail-panel.open { display: block; }
 
   .detail-summary {
-    padding: 20px 24px;
-    background: var(--surface2);
+    padding: 1rem;
+    background: linear-gradient(120deg, rgba(17,39,65,0.95), rgba(13,30,52,0.9));
     border-bottom: 1px solid var(--border);
-    font-size: 14px;
+    font-size: 0.88rem;
     line-height: 1.7;
-    color: #a8c8e8;
+    color: #b8d9f6;
   }
 
-  .findings-list { padding: 16px 24px; display: flex; flex-direction: column; gap: 12px; }
+  body.light-theme .detail-summary {
+    background: linear-gradient(120deg, rgba(234,245,255,0.98), rgba(225,241,255,0.96));
+    color: #215981;
+  }
+
+  .findings-list { padding: 0.9rem; display: flex; flex-direction: column; gap: 0.6rem; }
 
   .finding {
     display: grid;
     grid-template-columns: auto auto 1fr;
-    gap: 12px;
+    gap: 0.65rem;
     align-items: start;
-    padding: 12px 16px;
+    padding: 0.7rem;
     border-radius: 8px;
-    background: var(--bg);
+    background: rgba(6, 18, 32, 0.74);
     border: 1px solid var(--border);
-    font-size: 13px;
+    font-size: 0.8rem;
+  }
+
+  body.light-theme .finding {
+    background: rgba(240, 248, 255, 0.85);
   }
 
   .finding.critical { border-left: 3px solid var(--critical); }
@@ -298,17 +680,18 @@
   .finding.suggestion { border-left: 3px solid var(--suggestion); }
 
   .finding-location {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'IBM Plex Mono', monospace;
     font-size: 11px;
     color: var(--muted);
     white-space: nowrap;
+    overflow-wrap: anywhere;
   }
 
   .finding-source {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'IBM Plex Mono', monospace;
     font-size: 10px;
-    color: var(--accent2);
-    background: rgba(123,94,167,0.15);
+    color: #ffc58c;
+    background: rgba(244,162,97,0.14);
     padding: 2px 8px;
     border-radius: 4px;
     white-space: nowrap;
@@ -316,18 +699,123 @@
 
   .finding-comment { line-height: 1.6; color: #c8dff0; }
 
-  /* Empty state */
+  body.light-theme .finding-comment {
+    color: #2c5c84;
+  }
+
+  .table-wrap {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: auto;
+    background: var(--surface);
+    backdrop-filter: var(--glass-blur);
+  }
+
+  .reviews-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 760px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+  }
+
+  .reviews-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+
+  .reviews-table th {
+    text-align: left;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-size: 10px;
+    background: rgba(8, 24, 41, 0.96);
+    border-bottom: 1px solid var(--border);
+    padding: 0.56rem 0.65rem;
+  }
+
+  .sort-btn {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    cursor: pointer;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.22rem;
+  }
+
+  .sort-indicator {
+    opacity: 0.5;
+    font-size: 9px;
+  }
+
+  .sort-indicator.active {
+    opacity: 1;
+  }
+
+  body.light-theme .reviews-table th {
+    background: rgba(234, 246, 255, 0.96);
+  }
+
+  .reviews-table td {
+    border-bottom: 1px solid var(--border);
+    padding: 0.5rem 0.65rem;
+    vertical-align: top;
+    color: var(--text);
+  }
+
+  .reviews-table tbody tr:hover {
+    background: rgba(39, 210, 255, 0.08);
+  }
+
+  body.light-theme .reviews-table tbody tr:hover {
+    background: rgba(39, 210, 255, 0.12);
+  }
+
+  .table-title {
+    max-width: 350px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+
+  .table-status {
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    padding: 0.16rem 0.45rem;
+    font-size: 10px;
+    display: inline-block;
+  }
+
+  .table-status.running { color: var(--accent); }
+  .table-status.completed { color: var(--suggestion); }
+  .table-status.failed { color: var(--critical); }
+
   .empty {
     text-align: center;
-    padding: 80px 40px;
+    padding: clamp(2rem, 6vw, 4rem) 1.5rem;
     color: var(--muted);
+    background: rgba(8, 22, 38, 0.6);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-lg);
+  }
+
+  body.light-theme .empty {
+    background: rgba(255, 255, 255, 0.75);
   }
 
   .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
   .empty-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
-  .empty-sub { font-size: 14px; font-family: 'JetBrains Mono', monospace; }
+  .empty-sub { font-size: 14px; font-family: 'IBM Plex Mono', monospace; }
 
-  /* Loading */
   .spinner {
     width: 16px; height: 16px;
     border: 2px solid var(--border);
@@ -341,7 +829,7 @@
 
   .loading-bar {
     height: 2px;
-    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    background: linear-gradient(90deg, transparent, var(--accent), var(--accent-2), transparent);
     animation: shimmer 1.5s ease infinite;
   }
 
@@ -355,14 +843,69 @@
     padding: 24px 0;
     border-top: 1px solid var(--border);
     text-align: center;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'IBM Plex Mono', monospace;
     font-size: 12px;
     color: var(--muted);
   }
 
+  .hero-metric-value.accent { color: var(--accent); }
+  .hero-metric-value.warning { color: var(--warning); }
+  .hero-metric-value.suggestion { color: var(--suggestion); }
+  .hero-metric-value.critical { color: var(--critical); }
+
+  @media (max-width: 1080px) {
+    .hero {
+      grid-template-columns: 1fr;
+    }
+    .hero-right {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
   @media (max-width: 768px) {
-    .stats-grid { grid-template-columns: repeat(2, 1fr); }
-    .finding { grid-template-columns: 1fr; }
+    .header-inner {
+      flex-wrap: wrap;
+      gap: 0.65rem;
+    }
+    .header-actions {
+      width: 100%;
+      justify-content: space-between;
+    }
+    .hero-right {
+      grid-template-columns: 1fr;
+    }
+    .section-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .section-actions {
+      width: 100%;
+      justify-content: space-between;
+    }
+    .control-select {
+      min-width: 125px;
+    }
+    .view-toggle {
+      max-width: 100%;
+      width: 100%;
+    }
+    .view-btn {
+      flex: 1;
+    }
+    .review-header {
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .finding {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation: none !important;
+      transition: none !important;
+    }
   }
 </style>
 </head>
@@ -374,39 +917,100 @@
       <div class="logo-icon">🤖</div>
       <div class="logo-text">AI<span>Review</span>Bot</div>
     </div>
-    <div class="status-dot">
-      <div class="dot"></div>
-      <span id="status-text">Connecting...</span>
+    <div class="header-actions">
+      <button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle theme">☀️ Light</button>
+      <div class="status-dot">
+        <div class="dot"></div>
+        <span id="status-text">Connecting...</span>
+      </div>
     </div>
   </div>
 </header>
 
-<div class="container" style="padding-top: 32px; padding-bottom: 32px;">
+<main class="container main">
 
-  <!-- Stats -->
+  <section class="hero">
+    <div>
+      <h1 class="hero-title">Ship pull requests with high-signal AI review.</h1>
+      <p class="hero-sub">
+        Real-time quality intelligence for every PR. Track severity trends, expand findings instantly,
+        and catch critical issues before merge.
+      </p>
+      <div class="hero-pills">
+        <span class="hero-pill">Real-time feed</span>
+        <span class="hero-pill">AST + LLM</span>
+        <span class="hero-pill">Inline comments</span>
+      </div>
+      <div class="trend-card">
+        <div class="trend-header">
+          <span>Severity Trend</span>
+          <span id="trend-window">Last 0 polls</span>
+        </div>
+        <canvas id="severity-trend-chart" class="trend-canvas" width="600" height="220" aria-label="Severity trend chart"></canvas>
+        <div class="trend-legend">
+          <span class="legend-item"><span class="legend-dot" style="background:#ff5d73"></span>Critical</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#ffb547"></span>Warning</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#3ddc84"></span>Suggestion</span>
+        </div>
+      </div>
+    </div>
+    <div class="hero-right">
+      <div class="hero-metric">
+        <div class="hero-metric-label">Critical</div>
+        <div class="hero-metric-value critical" id="hero-critical">-</div>
+      </div>
+      <div class="hero-metric">
+        <div class="hero-metric-label">Warnings</div>
+        <div class="hero-metric-value warning" id="hero-warning">-</div>
+      </div>
+      <div class="hero-metric">
+        <div class="hero-metric-label">Suggestions</div>
+        <div class="hero-metric-value suggestion" id="hero-suggestion">-</div>
+      </div>
+      <div class="hero-metric">
+        <div class="hero-metric-label">Reviews</div>
+        <div class="hero-metric-value accent" id="hero-total">-</div>
+      </div>
+    </div>
+  </section>
+
   <div class="stats-grid">
     <div class="stat-card">
       <div class="stat-label">Total Reviews</div>
-      <div class="stat-value accent" id="stat-total">–</div>
+      <div class="stat-value accent" id="stat-total">-</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Critical Found</div>
-      <div class="stat-value critical" id="stat-critical">–</div>
+      <div class="stat-value critical" id="stat-critical">-</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Warnings</div>
-      <div class="stat-value warning" id="stat-warning">–</div>
+      <div class="stat-value warning" id="stat-warning">-</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Suggestions</div>
-      <div class="stat-value suggestion" id="stat-suggestion">–</div>
+      <div class="stat-value suggestion" id="stat-suggestion">-</div>
     </div>
   </div>
 
-  <!-- Reviews -->
   <div class="section-header">
     <div class="section-title">Recent Reviews</div>
-    <button class="refresh-btn" onclick="loadData()">↻ Refresh</button>
+    <div class="section-actions">
+      <div class="view-toggle" role="tablist" aria-label="Review feed mode">
+        <button class="view-btn active" id="view-cards" data-view="cards" type="button">Cards</button>
+        <button class="view-btn" id="view-compact" data-view="compact" type="button">Compact</button>
+        <button class="view-btn" id="view-table" data-view="table" type="button">Table</button>
+      </div>
+      <select class="control-select" id="refresh-interval" aria-label="Auto refresh interval">
+        <option value="5000">Auto 5s</option>
+        <option value="10000">Auto 10s</option>
+        <option value="30000">Auto 30s</option>
+        <option value="60000">Auto 60s</option>
+        <option value="0">Auto Off</option>
+      </select>
+      <button class="export-btn" id="export-csv" type="button" disabled>Export CSV</button>
+      <button class="refresh-btn" id="refresh-btn" type="button"><span class="icon">↻</span> Refresh</button>
+    </div>
   </div>
 
   <div class="reviews-list" id="reviews-list">
@@ -416,7 +1020,7 @@
     </div>
   </div>
 
-</div>
+</main>
 
 <footer>
   <div class="container">
@@ -425,28 +1029,202 @@
 </footer>
 
 <script>
-  let activeCard = null;
+  const THEME_KEY = 'ai-review-ui-theme';
+  const VIEW_KEY = 'ai-review-feed-view';
+  const REFRESH_KEY = 'ai-review-refresh-ms';
+  const MAX_TREND_POINTS = 18;
 
-  async function loadStats() {
-    try {
-      const res = await fetch('/api/stats');
-      const data = await res.json();
-      document.getElementById('stat-total').textContent = data.total_reviews ?? 0;
-      document.getElementById('stat-critical').textContent = data.critical_findings ?? 0;
-      document.getElementById('stat-warning').textContent = data.warning_findings ?? 0;
-      document.getElementById('stat-suggestion').textContent =
-        (data.total_findings ?? 0) - (data.critical_findings ?? 0) - (data.warning_findings ?? 0);
-      document.getElementById('status-text').textContent = 'Live · ' + new Date().toLocaleTimeString();
-    } catch(e) {
-      document.getElementById('status-text').textContent = 'Server offline';
+  const state = {
+    theme: 'dark',
+    viewMode: 'cards',
+    sortKey: 'started_at',
+    sortDir: 'desc',
+    refreshMs: 10000,
+    refreshTimer: null,
+    reviews: [],
+    trend: {
+      critical: [],
+      warning: [],
+      suggestion: [],
+    },
+  };
+
+  function escapeHtml(value) {
+    const text = String(value ?? '');
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function safeNumber(value) {
+    const num = Number(value ?? 0);
+    return Number.isFinite(num) ? num : 0;
+  }
+
+  function applyTheme(theme) {
+    document.body.classList.toggle('light-theme', theme === 'light');
+    const button = document.getElementById('theme-toggle');
+    if (button) {
+      button.textContent = theme === 'light' ? '🌙 Dark' : '☀️ Light';
     }
+    renderTrendChart();
+  }
+
+  function setTheme(theme) {
+    state.theme = theme;
+    localStorage.setItem(THEME_KEY, theme);
+    applyTheme(theme);
+  }
+
+  function applyViewMode(mode) {
+    const list = document.getElementById('reviews-list');
+    if (list) {
+      list.classList.toggle('compact', mode === 'compact');
+    }
+    document.querySelectorAll('.view-btn').forEach((btn) => {
+      btn.classList.toggle('active', btn.dataset.view === mode);
+    });
+
+    updateExportState();
+  }
+
+  function setViewMode(mode) {
+    state.viewMode = mode;
+    localStorage.setItem(VIEW_KEY, mode);
+    applyViewMode(mode);
+    renderReviews(state.reviews);
+  }
+
+  function initializePreferences() {
+    const storedTheme = localStorage.getItem(THEME_KEY);
+    const storedView = localStorage.getItem(VIEW_KEY);
+    const storedRefresh = Number(localStorage.getItem(REFRESH_KEY));
+
+    state.theme = storedTheme === 'light' ? 'light' : 'dark';
+    state.viewMode = ['cards', 'compact', 'table'].includes(storedView) ? storedView : 'cards';
+    state.refreshMs = Number.isFinite(storedRefresh) && storedRefresh >= 0 ? storedRefresh : 10000;
+
+    applyTheme(state.theme);
+    applyViewMode(state.viewMode);
+
+    const refreshSelect = document.getElementById('refresh-interval');
+    if (refreshSelect) {
+      refreshSelect.value = String(state.refreshMs);
+    }
+  }
+
+  function setRefreshIntervalMs(ms) {
+    state.refreshMs = ms;
+    localStorage.setItem(REFRESH_KEY, String(ms));
+    restartAutoRefresh();
+  }
+
+  function restartAutoRefresh() {
+    if (state.refreshTimer) {
+      clearInterval(state.refreshTimer);
+      state.refreshTimer = null;
+    }
+
+    if (state.refreshMs > 0) {
+      state.refreshTimer = setInterval(loadData, state.refreshMs);
+    }
+  }
+
+  function updateExportState() {
+    const exportBtn = document.getElementById('export-csv');
+    if (!exportBtn) return;
+    exportBtn.disabled = !(state.viewMode === 'table' && state.reviews.length);
+  }
+
+  function sortableHeader(label, key) {
+    const active = state.sortKey === key;
+    const indicator = active ? (state.sortDir === 'asc' ? 'ASC' : 'DESC') : 'SORT';
+    return `<button class="sort-btn" type="button" data-sort="${key}">${label} <span class="sort-indicator ${active ? 'active' : ''}">${indicator}</span></button>`;
+  }
+
+  function reviewSortValue(review, key) {
+    const stats = review.stats || {};
+    if (key === 'repo') return `${review.repo || ''}#${review.pr_number || ''}`.toLowerCase();
+    if (key === 'title') return String(review.pr_title || '').toLowerCase();
+    if (key === 'status') return String(review.status || '').toLowerCase();
+    if (key === 'critical') return safeNumber(stats.critical);
+    if (key === 'warning') return safeNumber(stats.warning);
+    if (key === 'suggestion') return safeNumber(stats.suggestion);
+    if (key === 'author') return String(review.author || '').toLowerCase();
+    if (key === 'started_at') return review.started_at ? new Date(review.started_at).getTime() : 0;
+    return '';
+  }
+
+  function getSortedReviews(reviews) {
+    const items = [...reviews];
+    const dir = state.sortDir === 'asc' ? 1 : -1;
+
+    items.sort((a, b) => {
+      const av = reviewSortValue(a, state.sortKey);
+      const bv = reviewSortValue(b, state.sortKey);
+
+      if (typeof av === 'number' && typeof bv === 'number') {
+        return (av - bv) * dir;
+      }
+
+      const aText = String(av);
+      const bText = String(bv);
+      return aText.localeCompare(bText, undefined, { numeric: true, sensitivity: 'base' }) * dir;
+    });
+
+    return items;
+  }
+
+  function csvCell(value) {
+    const clean = String(value ?? '');
+    return `"${clean.replace(/"/g, '""')}"`;
+  }
+
+  function exportTableCsv() {
+    const rows = getSortedReviews(state.reviews);
+    if (!rows.length) return;
+
+    const header = [
+      'Repository', 'PR Number', 'Title', 'Status',
+      'Critical', 'Warnings', 'Suggestions', 'Author', 'Started At'
+    ];
+
+    const lines = [header.map(csvCell).join(',')];
+
+    rows.forEach((r) => {
+      const s = r.stats || {};
+      lines.push([
+        r.repo || '',
+        r.pr_number || '',
+        r.pr_title || '',
+        r.status || '',
+        safeNumber(s.critical),
+        safeNumber(s.warning),
+        safeNumber(s.suggestion),
+        r.author || 'unknown',
+        r.started_at ? new Date(r.started_at).toISOString() : '',
+      ].map(csvCell).join(','));
+    });
+
+    const blob = new Blob([`${lines.join('\n')}\n`], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `review-feed-${Date.now()}.csv`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
   }
 
   function severityBadge(sev, count) {
     if (!count) return '';
     const cls = `badge-${sev}`;
     const icons = { critical: '🚨', warning: '⚠️', suggestion: '💡' };
-    return `<span class="badge ${cls}">${icons[sev]} ${count} ${sev}</span>`;
+    return `<span class="badge ${cls}">${icons[sev]} ${safeNumber(count)} ${escapeHtml(sev)}</span>`;
   }
 
   function statusBadge(status) {
@@ -454,9 +1232,9 @@
       running: '<span class="badge badge-running"><span class="spinner"></span> Running</span>',
       completed: '<span class="badge badge-completed">✓ Completed</span>',
       failed: '<span class="badge badge-failed">✗ Failed</span>',
-      skipped: '<span class="badge badge-warning">– Skipped</span>',
+      skipped: '<span class="badge badge-warning">- Skipped</span>',
     };
-    return map[status] || `<span class="badge">${status}</span>`;
+    return map[status] || `<span class="badge">${escapeHtml(status)}</span>`;
   }
 
   function renderFinding(f) {
@@ -464,21 +1242,21 @@
     const icons = { critical: '🚨', warning: '⚠️', suggestion: '💡' };
     return `
       <div class="finding ${sev}">
-        <div class="finding-location">${f.file || '?'}:${f.line || '?'}</div>
-        <div class="finding-source">${f.source || 'AI'}</div>
-        <div class="finding-comment">${icons[sev]} <strong>[${sev.toUpperCase()}]</strong> ${f.comment || ''}</div>
+        <div class="finding-location">${escapeHtml(f.file || '?')}:${escapeHtml(f.line || '?')}</div>
+        <div class="finding-source">${escapeHtml(f.source || 'AI')}</div>
+        <div class="finding-comment">${icons[sev]} <strong>[${escapeHtml(sev.toUpperCase())}]</strong> ${escapeHtml(f.comment || '')}</div>
       </div>`;
   }
 
-  function renderReview(r) {
+  function renderCardReview(r, index) {
     const stats = r.stats || {};
     const el = document.createElement('div');
     el.innerHTML = `
-      <div class="review-card" id="card-${r.id}">
+      <div class="review-card" id="card-${escapeHtml(r.id)}">
         <div class="review-header">
           <div>
-            <div class="review-repo">${r.repo} #${r.pr_number}</div>
-            <div class="review-title">${r.pr_title || 'Untitled PR'}</div>
+            <div class="review-repo">${escapeHtml(r.repo)} #${escapeHtml(r.pr_number)}</div>
+            <div class="review-title">${escapeHtml(r.pr_title || 'Untitled PR')}</div>
           </div>
           ${statusBadge(r.status)}
         </div>
@@ -486,63 +1264,300 @@
           ${severityBadge('critical', stats.critical)}
           ${severityBadge('warning', stats.warning)}
           ${severityBadge('suggestion', stats.suggestion)}
-          <span class="review-author">@${r.author || 'unknown'}</span>
+          <span class="review-author">@${escapeHtml(r.author || 'unknown')}</span>
           <span class="review-author">${r.started_at ? new Date(r.started_at).toLocaleString() : ''}</span>
         </div>
       </div>
-      <div class="detail-panel" id="detail-${r.id}">
-        ${r.summary ? `<div class="detail-summary">${r.summary}</div>` : ''}
+      <div class="detail-panel" id="detail-${escapeHtml(r.id)}">
+        ${r.summary ? `<div class="detail-summary">${escapeHtml(r.summary)}</div>` : ''}
         ${r.status === 'running' ? '<div class="loading-bar"></div><p style="padding:16px;text-align:center;color:var(--muted);font-size:13px;">Analysis in progress...</p>' : ''}
-        ${r.error ? `<div style="padding:16px;color:var(--critical);font-family:monospace;font-size:12px;">Error: ${r.error}</div>` : ''}
+        ${r.error ? `<div style="padding:16px;color:var(--critical);font-family:monospace;font-size:12px;">Error: ${escapeHtml(r.error)}</div>` : ''}
         <div class="findings-list">
-          ${(r.findings || []).map(renderFinding).join('') || (r.status === 'completed' ? '<p style="color:var(--suggestion);text-align:center;padding:16px;">✅ No issues found!</p>' : '')}
+          ${(r.findings || []).map(renderFinding).join('') || (r.status === 'completed' ? '<p style="color:var(--suggestion);text-align:center;padding:16px;">No issues found.</p>' : '')}
         </div>
       </div>`;
 
     const card = el.querySelector('.review-card');
     const detail = el.querySelector('.detail-panel');
-    card.addEventListener('click', () => {
-      const isOpen = detail.classList.contains('open');
-      // Close all
-      document.querySelectorAll('.detail-panel.open').forEach(p => p.classList.remove('open'));
-      document.querySelectorAll('.review-card.active').forEach(c => c.classList.remove('active'));
-      if (!isOpen) {
-        detail.classList.add('open');
-        card.classList.add('active');
-      }
-    });
+
+    if (card) {
+      card.style.animationDelay = `${Math.min(index * 45, 300)}ms`;
+      card.addEventListener('click', () => {
+        const isOpen = detail.classList.contains('open');
+        document.querySelectorAll('.detail-panel.open').forEach((p) => p.classList.remove('open'));
+        document.querySelectorAll('.review-card.active').forEach((c) => c.classList.remove('active'));
+        if (!isOpen) {
+          detail.classList.add('open');
+          card.classList.add('active');
+        }
+      });
+    }
 
     return el;
   }
 
-  async function loadData() {
-    await loadStats();
-    try {
-      const res = await fetch('/api/reviews');
-      const reviews = await res.json();
-      const list = document.getElementById('reviews-list');
+  function renderTableReviews(reviews) {
+    return `
+      <div class="table-wrap">
+        <table class="reviews-table" aria-label="Review table mode">
+          <thead>
+            <tr>
+              <th>${sortableHeader('Repository / PR', 'repo')}</th>
+              <th>${sortableHeader('Title', 'title')}</th>
+              <th>${sortableHeader('Status', 'status')}</th>
+              <th>${sortableHeader('Critical', 'critical')}</th>
+              <th>${sortableHeader('Warnings', 'warning')}</th>
+              <th>${sortableHeader('Suggestions', 'suggestion')}</th>
+              <th>${sortableHeader('Author', 'author')}</th>
+              <th>${sortableHeader('Started', 'started_at')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${reviews.map((r) => {
+              const s = r.stats || {};
+              return `
+                <tr>
+                  <td>${escapeHtml(r.repo)} #${escapeHtml(r.pr_number)}</td>
+                  <td><span class="table-title" title="${escapeHtml(r.pr_title || 'Untitled PR')}">${escapeHtml(r.pr_title || 'Untitled PR')}</span></td>
+                  <td><span class="table-status ${escapeHtml(r.status)}">${escapeHtml(r.status || 'unknown')}</span></td>
+                  <td>${safeNumber(s.critical)}</td>
+                  <td>${safeNumber(s.warning)}</td>
+                  <td>${safeNumber(s.suggestion)}</td>
+                  <td>@${escapeHtml(r.author || 'unknown')}</td>
+                  <td>${r.started_at ? escapeHtml(new Date(r.started_at).toLocaleString()) : ''}</td>
+                </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  }
 
-      if (!reviews.length) {
-        list.innerHTML = `
-          <div class="empty">
-            <div class="empty-icon">🔍</div>
-            <div class="empty-title">No reviews yet</div>
-            <div class="empty-sub">Open a Pull Request in your connected repo to trigger the first review.</div>
-          </div>`;
-        return;
-      }
+  function renderReviews(reviews) {
+    const list = document.getElementById('reviews-list');
+    if (!list) return;
+    updateExportState();
 
-      list.innerHTML = '';
-      reviews.forEach(r => list.appendChild(renderReview(r)));
-    } catch(e) {
-      document.getElementById('reviews-list').innerHTML =
-        `<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-title">Could not load reviews</div><div class="empty-sub">${e.message}</div></div>`;
+    if (!reviews.length) {
+      list.classList.remove('compact');
+      list.innerHTML = `
+        <div class="empty">
+          <div class="empty-icon">🔍</div>
+          <div class="empty-title">No reviews yet</div>
+          <div class="empty-sub">Open a Pull Request in your connected repo to trigger the first review.</div>
+        </div>`;
+      return;
+    }
+
+    if (state.viewMode === 'table') {
+      list.classList.remove('compact');
+      list.innerHTML = renderTableReviews(getSortedReviews(reviews));
+      return;
+    }
+
+    list.classList.toggle('compact', state.viewMode === 'compact');
+    list.innerHTML = '';
+    reviews.forEach((r, index) => list.appendChild(renderCardReview(r, index)));
+  }
+
+  function addTrendPoint(critical, warning, suggestion) {
+    state.trend.critical.push(safeNumber(critical));
+    state.trend.warning.push(safeNumber(warning));
+    state.trend.suggestion.push(safeNumber(suggestion));
+
+    if (state.trend.critical.length > MAX_TREND_POINTS) {
+      state.trend.critical.shift();
+      state.trend.warning.shift();
+      state.trend.suggestion.shift();
+    }
+
+    const windowLabel = document.getElementById('trend-window');
+    if (windowLabel) {
+      windowLabel.textContent = `Last ${state.trend.critical.length} polls`;
     }
   }
 
-  // Auto-refresh every 10 seconds
+  function renderTrendChart() {
+    const canvas = document.getElementById('severity-trend-chart');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const width = canvas.width;
+    const height = canvas.height;
+    ctx.clearRect(0, 0, width, height);
+
+    const series = [state.trend.critical, state.trend.warning, state.trend.suggestion];
+    const maxValue = Math.max(1, ...series.flat());
+    const points = state.trend.critical.length;
+
+    const styles = getComputedStyle(document.body);
+    const borderColor = styles.getPropertyValue('--border').trim() || 'rgba(100,140,170,0.28)';
+    const textColor = styles.getPropertyValue('--muted').trim() || '#7ea0bf';
+
+    const padding = { top: 14, right: 16, bottom: 24, left: 28 };
+    const chartW = width - padding.left - padding.right;
+    const chartH = height - padding.top - padding.bottom;
+
+    ctx.strokeStyle = borderColor;
+    ctx.lineWidth = 1;
+
+    for (let i = 0; i <= 3; i += 1) {
+      const y = padding.top + (chartH * i) / 3;
+      ctx.beginPath();
+      ctx.moveTo(padding.left, y);
+      ctx.lineTo(padding.left + chartW, y);
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = textColor;
+    ctx.font = '11px IBM Plex Mono';
+    ctx.fillText(String(maxValue), 4, padding.top + 2);
+    ctx.fillText('0', 10, padding.top + chartH + 2);
+
+    function drawLine(values, color) {
+      if (!values.length) return;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+
+      values.forEach((value, index) => {
+        const x = points > 1
+          ? padding.left + (chartW * index) / (points - 1)
+          : padding.left + chartW / 2;
+        const y = padding.top + chartH - (safeNumber(value) / maxValue) * chartH;
+        if (index === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+
+      ctx.stroke();
+
+      values.forEach((value, index) => {
+        const x = points > 1
+          ? padding.left + (chartW * index) / (points - 1)
+          : padding.left + chartW / 2;
+        const y = padding.top + chartH - (safeNumber(value) / maxValue) * chartH;
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(x, y, 2.4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    drawLine(state.trend.critical, '#ff5d73');
+    drawLine(state.trend.warning, '#ffb547');
+    drawLine(state.trend.suggestion, '#3ddc84');
+  }
+
+  async function loadStats() {
+    try {
+      const res = await fetch('/api/stats');
+      const data = await res.json();
+      const total = safeNumber(data.total_reviews);
+      const critical = safeNumber(data.critical_findings);
+      const warning = safeNumber(data.warning_findings);
+      const suggestion = Math.max(0, safeNumber(data.total_findings) - critical - warning);
+
+      document.getElementById('stat-total').textContent = total;
+      document.getElementById('stat-critical').textContent = critical;
+      document.getElementById('stat-warning').textContent = warning;
+      document.getElementById('stat-suggestion').textContent = suggestion;
+      document.getElementById('hero-total').textContent = total;
+      document.getElementById('hero-critical').textContent = critical;
+      document.getElementById('hero-warning').textContent = warning;
+      document.getElementById('hero-suggestion').textContent = suggestion;
+      document.getElementById('status-text').textContent = 'Live · ' + new Date().toLocaleTimeString();
+
+      addTrendPoint(critical, warning, suggestion);
+      renderTrendChart();
+    } catch (e) {
+      document.getElementById('status-text').textContent = 'Server offline';
+    }
+  }
+
+  async function loadData() {
+    const refreshBtn = document.getElementById('refresh-btn');
+    if (refreshBtn) refreshBtn.classList.add('loading');
+
+    await loadStats();
+
+    try {
+      const res = await fetch('/api/reviews');
+      const reviews = await res.json();
+      state.reviews = Array.isArray(reviews) ? reviews : [];
+      renderReviews(state.reviews);
+    } catch (e) {
+      document.getElementById('reviews-list').innerHTML =
+        `<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-title">Could not load reviews</div><div class="empty-sub">${escapeHtml(e.message)}</div></div>`;
+    } finally {
+      if (refreshBtn) refreshBtn.classList.remove('loading');
+    }
+  }
+
+  function bindEvents() {
+    const refreshBtn = document.getElementById('refresh-btn');
+    const themeToggle = document.getElementById('theme-toggle');
+    const refreshSelect = document.getElementById('refresh-interval');
+    const exportBtn = document.getElementById('export-csv');
+    const reviewsList = document.getElementById('reviews-list');
+
+    if (refreshBtn) {
+      refreshBtn.addEventListener('click', loadData);
+    }
+
+    if (themeToggle) {
+      themeToggle.addEventListener('click', () => {
+        setTheme(state.theme === 'light' ? 'dark' : 'light');
+      });
+    }
+
+    if (refreshSelect) {
+      refreshSelect.addEventListener('change', () => {
+        const next = Number(refreshSelect.value);
+        setRefreshIntervalMs(Number.isFinite(next) && next >= 0 ? next : 10000);
+      });
+    }
+
+    if (exportBtn) {
+      exportBtn.addEventListener('click', exportTableCsv);
+    }
+
+    document.querySelectorAll('.view-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const nextMode = btn.dataset.view;
+        if (!nextMode || nextMode === state.viewMode) return;
+        setViewMode(nextMode);
+      });
+    });
+
+    if (reviewsList) {
+      reviewsList.addEventListener('click', (event) => {
+        const target = event.target;
+        if (!(target instanceof Element)) return;
+        const sortBtn = target.closest('.sort-btn');
+        if (!sortBtn || state.viewMode !== 'table') return;
+
+        const key = sortBtn.getAttribute('data-sort');
+        if (!key) return;
+
+        if (state.sortKey === key) {
+          state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+          state.sortKey = key;
+          state.sortDir = key === 'started_at' ? 'desc' : 'asc';
+        }
+
+        renderReviews(state.reviews);
+      });
+    }
+
+    window.addEventListener('resize', renderTrendChart);
+  }
+
+  initializePreferences();
+  bindEvents();
   loadData();
-  setInterval(loadData, 10000);
+  restartAutoRefresh();
 </script>
 </body>
 </html>
