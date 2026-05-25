@@ -4,7 +4,7 @@ import traceback
 from datetime import datetime
 
 from app.services.ast_analyzer import ASTAnalyzer
-from app.services.claude_reviewer import ClaudeReviewer
+from app.services.groq_reviewer import GroqReviewer
 from app.services.github_client import GitHubClient
 from app.services.rules_engine import RulesEngine
 
@@ -13,7 +13,7 @@ class ReviewPipeline:
     def __init__(self, store):
         self.store = store
         self.github = GitHubClient(os.getenv("GITHUB_TOKEN", ""))
-        self.claude = ClaudeReviewer(os.getenv("ANTHROPIC_API_KEY", ""))
+        self.claude = GroqReviewer()
         self.ast = ASTAnalyzer()
         self.rules = RulesEngine()
 
